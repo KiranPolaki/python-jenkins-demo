@@ -18,7 +18,7 @@ pipeline {
                     python3 -m venv $VENV
                     . $VENV/bin/activate
                     pip install --upgrade pip
-                    pip install flake8 pytest pytest-cov pytest-junit wheel
+                    pip install flake8 pytest pytest-cov wheel
                 '''
             }
         }
@@ -36,15 +36,11 @@ pipeline {
             steps {
                 sh '''
                     . $VENV/bin/activate
-                    pytest --cov=app tests/
+                    pytest --cov=app --junitxml=pytest-results.xml tests/
                 '''
             }
             post {
                 always {
-                    sh '''
-                        . $VENV/bin/activate
-                        pytest --cov=app --cov-report=xml --junitxml=pytest-results.xml tests/
-                    '''
                     junit 'pytest-results.xml'
                 }
             }
@@ -54,7 +50,6 @@ pipeline {
             steps {
                 sh '''
                     . $VENV/bin/activate
-                    pip install wheel
                     python setup.py bdist_wheel
                 '''
             }
