@@ -1,42 +1,62 @@
 pipeline {
     agent any
-    
+
+    environment {
+        VENV = 'venv'
+    }
+
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-        
+
         stage('Setup') {
             steps {
-                sh 'python3 -m pip install --upgrade pip'
-                sh 'pip install -r requirements.txt'
+                sh '''
+                    python3 -m venv $VENV
+                    . $VENV/bin/activate
+                    pip install --upgrade pip
+                    pip install flake8 pytest pytest-cov pytest-junit wheel
+                '''
             }
         }
-        
+
         stage('Lint') {
             steps {
-                sh 'flake8 app/ tests/'
+                sh '''
+                    . $VENV/bin/activate
+                    flake8 app/ tests/
+                '''
             }
         }
-        
+
         stage('Test') {
             steps {
-                sh 'python3 -m pytest --cov=app tests/'
+                sh '''
+                    . $VENV/bin/activate
+                    pytest --cov=app tests/
+                '''
             }
             post {
                 always {
-                    sh 'python3 -m pytest --cov=app --cov-report=xml tests/'
-                    junit 'pytest-results.xml' // Requires pytest-junit plugin
+                    sh '''
+                        . $VENV/bin/activate
+                        pytest --cov=app --cov-report=xml --junitxml=pytest-results.xml tests/
+                    '''
+                    junit 'pytest-results.xml'
                 }
             }
         }
-        
+
         stage('Build') {
             steps {
-                sh 'pip install wheel'
-                sh 'python setup.py bdist_wheel'
+                sh '''
+                    . $VENV/bin/activate
+                    pip install wheel
+                    python setup.py bdist_wheel
+                '''
             }
             post {
                 success {
@@ -44,7 +64,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Deploy to Staging') {
             steps {
                 echo 'Deploying to staging environment...'
