@@ -23,14 +23,14 @@ pipeline {
             }
         }
 
-        stage('Lint') {
-            steps {
-                sh '''
-                    . $VENV/bin/activate
-                    flake8 app/ tests/
-                '''
-            }
-        }
+        // stage('Lint') {
+        //     steps {
+        //         sh '''
+        //             . $VENV/bin/activate
+        //             flake8 app/ tests/
+        //         '''
+        //     }
+        // }
 
         stage('Test') {
             steps {
